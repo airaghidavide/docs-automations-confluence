@@ -1,0 +1,48 @@
+trigger:
+  - main
+  
+parameters:
+  - name: forRelease
+    displayName: For Release
+    type: boolean
+    default: false
+  
+variables:
+  - name: artifactFeed
+    value: docs-automation/docs-automated-feed
+  - name: projectFeed
+    value: docs-automated-feed
+  
+steps:
+  - task: UsePythonVersion@0
+    displayName: 'Use Python 3.7'
+    inputs:
+      versionSpec: 3.7.*
+  
+  - task: PipAuthenticate@0
+    inputs:
+      artifactFeeds: '$(artifactFeed)'
+  
+  - script: |
+      python -m pip install --upgrade pip setuptools wheel
+      #pip install -r requirements.txt
+      for r in `(ls -a | grep 'requirements.*.txt')` ; do pip install -r $r ; done
+    displayName: 'Install dependencies'
+
+  - script: |
+      pip install sphinx
+      pip install sphinx-rtd-theme
+      pip install autodocsumm
+      pip install myst_parser
+      pip install sphinx-autoapi
+      pip install sphinx_copybutton
+      pip install sphinxcontrib-confluencebuilder
+    displayName: 'Install dependencies for sphinx documentation'
+  
+  - task: CmdLine@2
+    inputs:
+      script: |
+        make clean html
+        make confluence 
+      workingDirectory: '$(System.DefaultWorkingDirectory)/docs' 
+    displayName: 'Compile documentation and publish on confluence'
