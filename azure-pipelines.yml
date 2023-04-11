@@ -44,5 +44,22 @@ steps:
       script: |
         make clean html
         make confluence 
-      workingDirectory: '$(System.DefaultWorkingDirectory)/docs' 
-    displayName: 'Compile documentation and publish on confluence'
+      workingDirectory: '$(Build.SourcesDirectory)/docs/' 
+    displayName: 'Compile documentation and publish on confluence
+    
+   - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)/docs/_build/html'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      Contents: '**'
+    displayName: 'Copy documentation files to artifact directory'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
+    displayName: 'Publish documentation as artifact'
+    
+    
+    
